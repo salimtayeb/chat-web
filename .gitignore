@@ -5,3 +5,17 @@
 **/.env.*.local
 **/prisma/dev.db
 .DS_Store
+
+# Prisma / SQLite
+**/*.db
+**/*.sqlite
+**/*.sqlite3
+
+# Editor temp files
+**/*.swp
+**/*.swo
+**/*~
+**/*.bak
+
+# Logs
+**/*.log
