@@ -1,0 +1,115 @@
+{
+  "title": "Quiz pour Développeur Nodejs Fullstack",
+  "domain": "Informatique",
+  "questions": [
+    {
+      "id": "q1",
+      "type": "mcq",
+      "question": "Quel est le framework utilisé pour le développement front-end dans le projet ?",
+      "choices": [
+        "React",
+        "Angular",
+        "Vue.js",
+        "Ember.js"
+      ],
+      "answer": 1,
+      "explanation": "Le framework Angular est utilisé pour le développement front-end dans le projet."
+    },
+    {
+      "id": "q2",
+      "type": "mcq",
+      "question": "Quel est le langage de programmation utilisé pour le développement back-end dans le projet ?",
+      "choices": [
+        "JavaScript",
+        "TypeScript",
+        "Python",
+        "Ruby"
+      ],
+      "answer": 1,
+      "explanation": "Le langage de programmation TypeScript est utilisé pour le développement back-end dans le projet."
+    },
+    {
+      "id": "q3",
+      "type": "mcq",
+      "question": "Quelle est l'architecture utilisée dans le projet ?",
+      "choices": [
+        "Monolithe",
+        "Microservices",
+        "SOA",
+        "Event-driven"
+      ],
+      "answer": 1,
+      "explanation": "L'architecture Microservices est utilisée dans le projet."
+    },
+    {
+      "id": "q4",
+      "type": "mcq",
+      "question": "Quel est le format des échanges de fichiers dans le projet ?",
+      "choices": [
+        "XML",
+        "JSON",
+        "CSV",
+        "Avro"
+      ],
+      "answer": 1,
+      "explanation": "Le format JSON est utilisé pour les échanges de fichiers dans le projet."
+    },
+    {
+      "id": "q5",
+      "type": "mcq",
+      "question": "Quelle est la méthodologie de développement utilisée dans l'équipe ?",
+      "choices": [
+        "Waterfall",
+        "Scrum",
+        "Kanban",
+        "Lean"
+      ],
+      "answer": 1,
+      "explanation": "La méthodologie Scrum est utilisée dans l'équipe."
+    },
+    {
+      "id": "q6",
+      "type": "mcq",
+      "question": "Quel est le nombre de jours de télétravail par semaine proposés par l'entreprise ?",
+      "choices": [
+        "1",
+        "2-3",
+        "4-5",
+        "6-7"
+      ],
+      "answer": 1,
+      "explanation": "L'entreprise propose 2-3 jours de télétravail par semaine."
+    },
+    {
+      "id": "q7",
+      "type": "mcq",
+      "question": "Quel est le nombre de RTT proposés par l'entreprise en 2026 ?",
+      "choices": [
+        "5",
+        "7",
+        "9,5",
+        "10"
+      ],
+      "answer": 2,
+      "explanation": "L'entreprise propose 9,5 RTT en 2026."
+    },
+    {
+      "id": "q8",
+      "type": "open",
+      "question": "Décrivez une situation où vous avez dû analyser et résoudre un incident de production dans un projet de développement logiciel. Quelles étapes avez-vous suivies pour identifier et corriger le problème ?",
+      "explanation": "La réponse doit décrire une situation concrète où le candidat a dû analyser et résoudre un incident de production, en détaillant les étapes suivies pour identifier et corriger le problème."
+    },
+    {
+      "id": "q9",
+      "type": "open",
+      "question": "Imaginez que vous êtes chargé de développer une nouvelle fonctionnalité pour un projet de facture électronique. Décrivez les étapes que vous suivriez pour concevoir et mettre en œuvre cette fonctionnalité, en tenant compte des exigences de sécurité et de scalabilité.",
+      "explanation": "La réponse doit décrire les étapes suivies pour concevoir et mettre en œuvre la nouvelle fonctionnalité, en tenant compte des exigences de sécurité et de scalabilité."
+    },
+    {
+      "id": "q10",
+      "type": "open",
+      "question": "Décrivez votre expérience avec les bases de données et comment vous les utilisez dans vos projets de développement logiciel. Quels sont les avantages et les inconvénients de l'utilisation de bases de données dans les projets de développement logiciel ?",
+      "explanation": "La réponse doit décrire l'expérience du candidat avec les bases de données, en détaillant les avantages et les inconvénients de leur utilisation dans les projets de développement logiciel."
+    }
+  ]
+}

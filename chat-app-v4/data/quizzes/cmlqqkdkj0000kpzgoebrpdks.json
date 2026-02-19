@@ -1,0 +1,115 @@
+{
+  "title": "Quiz Développeur Node.js",
+  "domain": "Développement logiciel",
+  "questions": [
+    {
+      "id": "q1",
+      "type": "mcq",
+      "question": "Quel est le langage de programmation principalement utilisé pour le développement Node.js ?",
+      "choices": [
+        "Java",
+        "Python",
+        "JavaScript",
+        "C++"
+      ],
+      "answer": 2,
+      "explanation": "JavaScript est le langage de programmation utilisé pour développer des applications Node.js."
+    },
+    {
+      "id": "q2",
+      "type": "mcq",
+      "question": "Quel est l'objectif principal de l'utilisation de Prisma dans un projet Node.js ?",
+      "choices": [
+        "Gérer les routes API",
+        "Gérer les bases de données",
+        "Gérer les utilisateurs",
+        "Gérer les fichiers"
+      ],
+      "answer": 1,
+      "explanation": "Prisma est utilisé pour gérer les bases de données dans un projet Node.js."
+    },
+    {
+      "id": "q3",
+      "type": "mcq",
+      "question": "Quelle est la technologie de base de données utilisée dans ce projet ?",
+      "choices": [
+        "MySQL",
+        "MongoDB",
+        "PostgreSQL",
+        "Oracle"
+      ],
+      "answer": 2,
+      "explanation": "PostgreSQL est la technologie de base de données utilisée dans ce projet."
+    },
+    {
+      "id": "q4",
+      "type": "mcq",
+      "question": "Qu'est-ce que les tests dans le développement logiciel ?",
+      "choices": [
+        "Un processus de débogage",
+        "Un processus de déploiement",
+        "Un processus de validation de la qualité du code",
+        "Un processus de conception"
+      ],
+      "answer": 2,
+      "explanation": "Les tests sont un processus de validation de la qualité du code pour s'assurer qu'il fonctionne comme prévu."
+    },
+    {
+      "id": "q5",
+      "type": "mcq",
+      "question": "Qu'est-ce que CI/CD dans le développement logiciel ?",
+      "choices": [
+        "Continuous Integration / Continuous Deployment",
+        "Continuous Integration / Continuous Development",
+        "Continuous Deployment / Continuous Development",
+        "Continuous Testing / Continuous Deployment"
+      ],
+      "answer": 0,
+      "explanation": "CI/CD signifie Continuous Integration / Continuous Deployment, un processus automatisé de construction, de test et de déploiement du code."
+    },
+    {
+      "id": "q6",
+      "type": "mcq",
+      "question": "Qu'est-ce qu'une API REST ?",
+      "choices": [
+        "Un protocole de communication pour les réseaux locaux",
+        "Un protocole de communication pour les réseaux distants",
+        "Un style d'architecture pour les API",
+        "Un langage de programmation pour les API"
+      ],
+      "answer": 2,
+      "explanation": "Une API REST est un style d'architecture pour les API qui utilise des requêtes HTTP pour interagir avec les ressources."
+    },
+    {
+      "id": "q7",
+      "type": "mcq",
+      "question": "Qu'est-ce que TypeScript ?",
+      "choices": [
+        "Un langage de programmation compilé",
+        "Un langage de programmation interprété",
+        "Un superset de JavaScript",
+        "Un sous-ensemble de JavaScript"
+      ],
+      "answer": 2,
+      "explanation": "TypeScript est un superset de JavaScript qui ajoute des fonctionnalités de typage statique et d'autres fonctionnalités pour améliorer la productivité et la fiabilité du code."
+    },
+    {
+      "id": "q8",
+      "type": "open",
+      "question": "Décrivez les étapes pour créer une nouvelle API REST avec Node.js et Prisma. Quels sont les avantages et les inconvénients de cette approche ?",
+      "explanation": "La réponse devrait inclure les étapes pour créer une nouvelle API REST avec Node.js et Prisma, ainsi que les avantages et les inconvénients de cette approche."
+    },
+    {
+      "id": "q9",
+      "type": "open",
+      "question": "Comment implémenteriez-vous la sécurité dans une API REST avec Node.js et PostgreSQL ? Quels sont les principaux risques et menaces pour la sécurité de l'API ?",
+      "explanation": "La réponse devrait inclure les mesures pour implémenter la sécurité dans une API REST avec Node.js et PostgreSQL, ainsi que les principaux risques et menaces pour la sécurité de l'API."
+    },
+    {
+      "id": "q10",
+      "type": "open",
+      "question": "Décrivez un scénario dans lequel vous devriez utiliser TypeScript dans un projet Node.js. Quels sont les avantages et les inconvénients de l'utilisation de TypeScript dans ce scénario ?",
+      "explanation": "La réponse devrait inclure un scénario dans lequel TypeScript est utilisé dans un projet Node.js, ainsi que les avantages et les inconvénients de l'utilisation de TypeScript dans ce scénario."
+    }
+  ]
+}

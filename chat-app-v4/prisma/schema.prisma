@@ -1,0 +1,74 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model CareerGeneration {
+  id           Int      @id @default(autoincrement())
+  name         String?
+  education    String
+  experience   String
+  skills       String
+  targetRole   String
+
+  cv           String
+  coverLetter  String
+  suggestions  String
+
+  createdAt    DateTime @default(now())
+}
+
+model Conversation {
+  id        String   @id @default(uuid())
+  title     String
+  createdAt DateTime @default(now())
+  messages  Message[]
+}
+
+model Message {
+  id             String       @id @default(uuid())
+  conversationId String
+  conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+
+  role      String
+  content   String
+  createdAt DateTime @default(now())
+
+  @@index([conversationId])
+}
+
+
+
+
+model Quiz {
+  id        String   @id @default(cuid())
+  title     String
+  domain    String
+  jobText   String   // l'offre d'emploi brute utilisée
+  payload   String     // le quiz complet (questions, answers, etc.)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model MatchResult {
+  id           String   @id @default(cuid())
+  createdAt    DateTime @default(now())
+
+  // liens / contexte
+  quizTitle    String?
+  jobText      String
+  quizScorePct Int
+
+  // CV
+  cvMode       String   // "text" | "pdf"
+  cvText       String?
+  cvFileName   String?
+
+  // résultat matching
+  matchPct     Int
+  report       String   // texte (ou JSON stringifié)
+}

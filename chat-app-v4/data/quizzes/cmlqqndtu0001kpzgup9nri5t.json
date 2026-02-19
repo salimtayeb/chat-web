@@ -1,0 +1,115 @@
+{
+  "title": "Développeur PHP - Swoole",
+  "domain": "Développement Web",
+  "questions": [
+    {
+      "id": "q1",
+      "type": "mcq",
+      "question": "Quel est l'objectif principal du développement de l'API de traçabilité produit ?",
+      "choices": [
+        "Améliorer la sécurité des échanges",
+        "Optimiser les performances de l'application",
+        "Concevoir une architecture back-end évolutionnaire",
+        "Tous les éléments ci-dessus"
+      ],
+      "answer": 3,
+      "explanation": "L'objectif principal est de concevoir une API robuste, hautement sécurisée et performante."
+    },
+    {
+      "id": "q2",
+      "type": "mcq",
+      "question": "Quel est le rôle de Swoole dans le développement de l'API ?",
+      "choices": [
+        "Améliorer la sécurité des échanges",
+        "Optimiser les performances de l'application",
+        "Concevoir une architecture back-end évolutionnaire",
+        "Gérer les données dans Firestore"
+      ],
+      "answer": 1,
+      "explanation": "Swoole est utilisé pour améliorer la performance applicative."
+    },
+    {
+      "id": "q3",
+      "type": "mcq",
+      "question": "Quel est l'environnement cloud utilisé pour le développement de l'API ?",
+      "choices": [
+        "AWS",
+        "GCP",
+        "Azure",
+        "IBM Cloud"
+      ],
+      "answer": 1,
+      "explanation": "L'environnement cloud utilisé est GCP (Google Cloud Platform)."
+    },
+    {
+      "id": "q4",
+      "type": "mcq",
+      "question": "Quelles sont les compétences requises pour le développement de l'API ?",
+      "choices": [
+        "Expertise PHP moderne",
+        "Maîtrise de Swoole",
+        "Expérience cloud avec GCP",
+        "Tous les éléments ci-dessus"
+      ],
+      "answer": 3,
+      "explanation": "Les compétences requises incluent l'expertise PHP moderne, la maîtrise de Swoole et l'expérience cloud avec GCP."
+    },
+    {
+      "id": "q5",
+      "type": "mcq",
+      "question": "Quel est l'objectif de la collaboration avec les équipes DevOps ?",
+      "choices": [
+        "Améliorer la sécurité des échanges",
+        "Optimiser les performances de l'application",
+        "Concevoir une architecture back-end évolutionnaire",
+        "Assurer la compatibilité avec les outils DevOps"
+      ],
+      "answer": 3,
+      "explanation": "La collaboration avec les équipes DevOps vise à concevoir une architecture back-end évolutionnaire et à assurer la compatibilité avec les outils DevOps."
+    },
+    {
+      "id": "q6",
+      "type": "mcq",
+      "question": "Quels sont les outils de stockage de données utilisés pour l'API ?",
+      "choices": [
+        "Firestore et Datastore",
+        "Redis et MySQL",
+        "Tous les éléments ci-dessus",
+        "Aucun des éléments ci-dessus"
+      ],
+      "answer": 2,
+      "explanation": "Les outils de stockage de données utilisés incluent Firestore, Datastore, Redis et MySQL."
+    },
+    {
+      "id": "q7",
+      "type": "mcq",
+      "question": "Quelle est la caractéristique principale de l'environnement de développement ?",
+      "choices": [
+        "Environnement monolithe",
+        "Environnement multi-tenant",
+        "Environnement cloud public",
+        "Environnement local"
+      ],
+      "answer": 1,
+      "explanation": "L'environnement de développement est un environnement multi-tenant."
+    },
+    {
+      "id": "q8",
+      "type": "open",
+      "question": "Décrivez les étapes que vous suivriez pour concevoir une architecture back-end évolutionnaire dans un environnement cloud.",
+      "explanation": "La réponse doit inclure les étapes de conception d'une architecture back-end évolutionnaire, telles que la définition des exigences, la sélection des outils et des technologies, la conception de la structure de données, etc."
+    },
+    {
+      "id": "q9",
+      "type": "open",
+      "question": "Comment assureriez-vous la sécurité des échanges dans une API de traçabilité produit ?",
+      "explanation": "La réponse doit inclure les mesures de sécurité telles que la cryptographie, l'authentification, l'autorisation, etc."
+    },
+    {
+      "id": "q10",
+      "type": "open",
+      "question": "Décrivez un scénario dans lequel vous devriez optimiser les performances d'une API de traçabilité produit. Quelles seraient vos étapes pour résoudre ce problème ?",
+      "explanation": "La réponse doit inclure les étapes de diagnostic du problème, la sélection des outils et des technologies, la mise en œuvre des optimisations, etc."
+    }
+  ]
+}
