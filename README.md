@@ -19,9 +19,27 @@ Projet personnel avec plusieurs versions successives d’une application web bas
 - Prisma
 - Playwright (PDF)
 
-## 🚀 Lancer la version finale
+## 🚀 Lancer la première version
+```bash
+cd chat-app
+npm install
+npm run dev
+
+## 🚀 Lancer la deuxième version
+```bash
+cd chat-app-v2
+npm install
+npm run dev
+
+## 🚀 Lancer la troisième version
 ```bash
 cd chat-app-v3
+npm install
+npm run dev
+
+## 🚀 Lancer la version finale
+```bash
+cd chat-app-v4
 npm install
 npm run dev
 
