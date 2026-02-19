@@ -4,8 +4,9 @@ Projet personnel avec plusieurs versions successives d’une application web bas
 
 ## 📂 Structure
 - chat-app : première version
-- chat-app-v2 : version améliorée
-- chat-app-v3 : version finale (chat + génération de CV PDF)
+- chat-app-v2 : version améliorée(authentification user)
+- chat-app-v3 : chat + génération de CV PDF
+- chat-app-v4 : quizz + matching(à partir d'offre d'emploi)
 
 ## ✨ Fonctionnalités (v3)
 - Authentification
