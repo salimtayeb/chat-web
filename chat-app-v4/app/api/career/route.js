@@ -215,6 +215,39 @@ function normalizeCity(v) {
    ✅ FIN AJOUTS
 =========================== */
 
+/* ===========================
+   ✅ AJOUTS : photo optionnelle
+   - on stocke la préférence includePhoto
+   - on stocke photoDataUrl si valide
+   - on N'ENVOIE PAS la photo à l'IA
+=========================== */
+function normalizeIncludePhoto(v) {
+  return Boolean(v);
+}
+
+function normalizePhotoDataUrl(v) {
+  const s = String(v || "").trim();
+  if (!s) return "";
+
+  // accepte base64 dataUrl ou url http(s)
+  const ok =
+    s.startsWith("data:image/") ||
+    s.startsWith("http://") ||
+    s.startsWith("https://");
+
+  if (!ok) return "";
+
+  // limite anti-abus (évite de sauver un truc gigantesque)
+  // 2.5MB approx en caractères (base64 gonfle un peu)
+  const MAX_CHARS = 2_500_000;
+  if (s.length > MAX_CHARS) return "";
+
+  return s;
+}
+/* ===========================
+   ✅ FIN AJOUTS PHOTO
+=========================== */
+
 export async function POST(req) {
   try {
     const body = await req.json();
@@ -226,6 +259,10 @@ export async function POST(req) {
     const city = normalizeCity(body?.city);
     const email = normalizeEmail(body?.email);
     const phone = normalizePhone(body?.phone);
+
+    // ✅ AJOUT : photo optionnelle
+    const includePhoto = normalizeIncludePhoto(body?.includePhoto);
+    const photoDataUrl = normalizePhotoDataUrl(body?.photoDataUrl);
 
     // ✅ maintenant on accepte string OU blocs (array) pour ces champs
     const educationArr = normalizeEducation(body?.education);
@@ -255,6 +292,7 @@ Infos personnelles (si disponibles) :
 `.trim();
 
     // Prompt stable + JSON strict
+    // ✅ IMPORTANT : on n'inclut PAS photoDataUrl dans le prompt IA
     const prompt = `
 Tu es un expert RH.
 À partir du profil suivant, génère:
@@ -300,7 +338,7 @@ Réponds en JSON STRICT (sans markdown, sans backticks) avec ces clés: cv, cove
     }
 
     // ✅ IMPORTANT: on stocke en JSON string pour garder les blocs (compatible PDF)
-    // ✅ AJOUT: on stocke aussi infos perso si présentes (sans casser si colonnes non ajoutées)
+    // ✅ AJOUT: on stocke aussi infos perso + photo si présentes (sans casser le reste)
     const baseData = {
       name: name || null,
       education: JSON.stringify(educationArr),
@@ -310,6 +348,9 @@ Réponds en JSON STRICT (sans markdown, sans backticks) avec ces clés: cv, cove
       cv,
       coverLetter,
       suggestions,
+
+      // ✅ AJOUT : préférence photo (si colonne Prisma existe)
+      includePhoto,
     };
 
     const data = {
@@ -318,6 +359,9 @@ Réponds en JSON STRICT (sans markdown, sans backticks) avec ces clés: cv, cove
       ...(city ? { city } : {}),
       ...(email ? { email } : {}),
       ...(phone ? { phone } : {}),
+
+      // ✅ AJOUT : photoDataUrl seulement si fourni et valide
+      ...(photoDataUrl ? { photoDataUrl } : {}),
     };
 
     const created = await prisma.careerGeneration.create({
@@ -334,6 +378,9 @@ Réponds en JSON STRICT (sans markdown, sans backticks) avec ces clés: cv, cove
         city: true,
         email: true,
         phone: true,
+
+        // ✅ AJOUT: renvoyer le flag photo (évite de renvoyer le base64)
+        includePhoto: true,
       },
     });
 

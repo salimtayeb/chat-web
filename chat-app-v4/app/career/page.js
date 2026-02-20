@@ -11,9 +11,7 @@ function Field({ label, hint, children }) {
         <label style={{ fontWeight: 700, fontSize: 13, letterSpacing: 0.2 }}>
           {label}
         </label>
-        {hint ? (
-          <span style={{ fontSize: 12, opacity: 0.75 }}>{hint}</span>
-        ) : null}
+        {hint ? <span style={{ fontSize: 12, opacity: 0.75 }}>{hint}</span> : null}
       </div>
       {children}
     </div>
@@ -103,6 +101,39 @@ function MiniButton({ children, onClick, variant = "ghost", type = "button" }) {
   );
 }
 
+/* ✅ AJOUT : conversion + resize (carré) => base64 pour PDF (fiable) */
+async function fileToResizedDataUrl(file, size = 600, quality = 0.85) {
+  const url = URL.createObjectURL(file);
+
+  try {
+    const img = new Image();
+    img.src = url;
+
+    await new Promise((resolve, reject) => {
+      img.onload = () => resolve(true);
+      img.onerror = () => reject(new Error("Impossible de charger l'image"));
+    });
+
+    // Crop carré centré
+    const s = Math.min(img.width, img.height);
+    const sx = (img.width - s) / 2;
+    const sy = (img.height - s) / 2;
+
+    const canvas = document.createElement("canvas");
+    canvas.width = size;
+    canvas.height = size;
+
+    const ctx = canvas.getContext("2d");
+    if (!ctx) throw new Error("Canvas non supporté");
+
+    ctx.drawImage(img, sx, sy, s, s, 0, 0, size, size);
+
+    return canvas.toDataURL("image/jpeg", quality);
+  } finally {
+    URL.revokeObjectURL(url);
+  }
+}
+
 export default function CareerPage() {
   const router = useRouter();
 
@@ -125,6 +156,10 @@ export default function CareerPage() {
     email: "",
     phone: "",
 
+    /* ✅ AJOUT : option photo */
+    includePhoto: false,
+    photoDataUrl: "",
+
     experience: [{ title: "", company: "", year: "", details: "" }],
     skills: [],
     education: [{ degree: "", school: "", year: "" }],
@@ -136,6 +171,10 @@ export default function CareerPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [result, setResult] = useState(null);
+
+  /* ✅ AJOUT : état upload photo */
+  const [photoLoading, setPhotoLoading] = useState(false);
+  const [photoError, setPhotoError] = useState("");
 
   const missing = useMemo(() => {
     const labels = [];
@@ -249,6 +288,41 @@ export default function CareerPage() {
     }));
   }
 
+  /* ✅ AJOUT : gestion photo */
+  async function handlePhotoFile(file) {
+    setPhotoError("");
+    if (!file) return;
+
+    // Sécurité basique
+    const isImage = String(file.type || "").startsWith("image/");
+    if (!isImage) {
+      setPhotoError("Le fichier doit être une image (png/jpg/webp).");
+      return;
+    }
+
+    // Limite simple (évite base64 énorme)
+    const maxMb = 6;
+    if (file.size > maxMb * 1024 * 1024) {
+      setPhotoError(`Image trop lourde. Max ${maxMb} MB.`);
+      return;
+    }
+
+    setPhotoLoading(true);
+    try {
+      const dataUrl = await fileToResizedDataUrl(file, 600, 0.85);
+      setForm((p) => ({ ...p, photoDataUrl: dataUrl }));
+    } catch (e) {
+      setPhotoError("Impossible de traiter l'image.");
+    } finally {
+      setPhotoLoading(false);
+    }
+  }
+
+  function clearPhoto() {
+    setPhotoError("");
+    setForm((p) => ({ ...p, photoDataUrl: "" }));
+  }
+
   /* ✅ AJOUT : déconnexion "réelle" + redirection */
   async function handleLogout() {
     try {
@@ -282,6 +356,10 @@ export default function CareerPage() {
       city: String(form.city || "").trim(),
       email: String(form.email || "").trim(),
       phone: String(form.phone || "").trim(),
+
+      /* ✅ AJOUT : photo optionnelle envoyée au backend */
+      includePhoto: Boolean(form.includePhoto),
+      photoDataUrl: form.includePhoto ? String(form.photoDataUrl || "") : "",
 
       skills: (form.skills || []).map((s) => String(s).trim()).filter(Boolean),
       education: (form.education || [])
@@ -425,10 +503,146 @@ export default function CareerPage() {
                 <Input
                   placeholder="Ex : Salim Tayeb"
                   value={form.name}
-                  onChange={(e) =>
-                    setForm((p) => ({ ...p, name: e.target.value }))
-                  }
+                  onChange={(e) => setForm((p) => ({ ...p, name: e.target.value }))}
                 />
+              </Field>
+
+              {/* ✅ AJOUT : Photo optionnelle (checkbox + upload + preview) */}
+              <Field label="Photo" hint="Optionnel">
+                <div style={{ display: "grid", gap: 10 }}>
+                  <label
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 10,
+                      cursor: "pointer",
+                      userSelect: "none",
+                    }}
+                  >
+                    <input
+                      type="checkbox"
+                      checked={Boolean(form.includePhoto)}
+                      onChange={(e) => {
+                        const checked = e.target.checked;
+                        setForm((p) => ({
+                          ...p,
+                          includePhoto: checked,
+                          // si l'utilisateur décoche => on vide la photo pour éviter une surprise
+                          photoDataUrl: checked ? p.photoDataUrl : "",
+                        }));
+                        setPhotoError("");
+                      }}
+                      style={{ transform: "scale(1.1)" }}
+                    />
+                    <span style={{ fontSize: 13, fontWeight: 800 }}>
+                      Inclure une photo dans le CV
+                    </span>
+                    <span style={{ fontSize: 12, opacity: 0.7 }}>
+                      (affichée en haut à gauche)
+                    </span>
+                  </label>
+
+                  {form.includePhoto ? (
+                    <div
+                      style={{
+                        display: "grid",
+                        gap: 10,
+                        gridTemplateColumns: "auto 1fr",
+                        alignItems: "center",
+                      }}
+                    >
+                      {/* Preview */}
+                      <div
+                        style={{
+                          width: 88,
+                          height: 88,
+                          borderRadius: 18,
+                          overflow: "hidden",
+                          border: "1px solid rgba(255,255,255,0.18)",
+                          background: "rgba(0,0,0,0.18)",
+                          display: "grid",
+                          placeItems: "center",
+                        }}
+                        title="Aperçu"
+                      >
+                        {form.photoDataUrl ? (
+                          <img
+                            src={form.photoDataUrl}
+                            alt="Aperçu photo"
+                            style={{
+                              width: "100%",
+                              height: "100%",
+                              objectFit: "cover",
+                              objectPosition: "50% 35%",
+                              display: "block",
+                            }}
+                          />
+                        ) : (
+                          <div style={{ fontSize: 12, opacity: 0.75, textAlign: "center" }}>
+                            Pas de photo
+                          </div>
+                        )}
+                      </div>
+
+                      <div style={{ display: "grid", gap: 8 }}>
+                        <input
+                          type="file"
+                          accept="image/*"
+                          onChange={async (e) => {
+                            const f = e.target.files?.[0];
+                            if (!f) return;
+                            await handlePhotoFile(f);
+                          }}
+                          style={{
+                            width: "100%",
+                            padding: "12px 12px",
+                            borderRadius: 12,
+                            border: "1px solid rgba(255,255,255,0.18)",
+                            background: "rgba(0,0,0,0.18)",
+                            color: "white",
+                            outline: "none",
+                          }}
+                        />
+
+                        <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
+                          <MiniButton
+                            onClick={() => {
+                              // déclencheur simple: l’utilisateur peut re-uploader via input
+                              // bouton utile pour supprimer
+                              clearPhoto();
+                            }}
+                            variant="danger"
+                          >
+                            Supprimer la photo
+                          </MiniButton>
+
+                          <div style={{ fontSize: 12, opacity: 0.75, alignSelf: "center" }}>
+                            {photoLoading ? "Traitement de l'image…" : "Conseil : photo claire, visage centré."}
+                          </div>
+                        </div>
+
+                        {photoError ? (
+                          <div
+                            style={{
+                              padding: "10px 12px",
+                              borderRadius: 14,
+                              border: "1px solid rgba(255,120,120,0.35)",
+                              background: "rgba(255, 80, 80, 0.08)",
+                              color: "#ffb4b4",
+                              fontSize: 13,
+                            }}
+                          >
+                            {photoError}
+                          </div>
+                        ) : null}
+                      </div>
+                    </div>
+                  ) : (
+                    <div style={{ fontSize: 12, opacity: 0.75 }}>
+                      Active l’option pour ajouter une photo (elle sera redimensionnée automatiquement).
+                    </div>
+                  )}
+                </div>
               </Field>
 
               {/* ✅ AJOUT : Infos personnelles */}
@@ -452,9 +666,7 @@ export default function CareerPage() {
                     <Input
                       placeholder="Ville"
                       value={form.city}
-                      onChange={(e) =>
-                        setForm((p) => ({ ...p, city: e.target.value }))
-                      }
+                      onChange={(e) => setForm((p) => ({ ...p, city: e.target.value }))}
                     />
                   </div>
 
@@ -532,9 +744,7 @@ export default function CareerPage() {
                       <Textarea
                         placeholder="- Missions\n- Réalisations\n- Résultats (chiffres si possible)"
                         value={ex.details}
-                        onChange={(e) =>
-                          updateExperience(i, "details", e.target.value)
-                        }
+                        onChange={(e) => updateExperience(i, "details", e.target.value)}
                       />
 
                       <div style={{ display: "flex", justifyContent: "flex-end" }}>
@@ -659,9 +869,7 @@ export default function CareerPage() {
                       <Input
                         placeholder="Diplôme (ex : Bac+3 Informatique)"
                         value={ed.degree}
-                        onChange={(e) =>
-                          updateEducation(i, "degree", e.target.value)
-                        }
+                        onChange={(e) => updateEducation(i, "degree", e.target.value)}
                       />
 
                       <div
@@ -674,9 +882,7 @@ export default function CareerPage() {
                         <Input
                           placeholder="École / Organisme"
                           value={ed.school}
-                          onChange={(e) =>
-                            updateEducation(i, "school", e.target.value)
-                          }
+                          onChange={(e) => updateEducation(i, "school", e.target.value)}
                         />
                         <Input
                           placeholder="Année"

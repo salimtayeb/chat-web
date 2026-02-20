@@ -209,11 +209,30 @@ export async function GET(req) {
     const phone = String(gen.phone ?? fallbackPersonal.phone ?? "").trim();
 
     const personalRows = [
-      birthDate ? `<div class="infoRow"><span class="k">Date de naissance</span><span class="v">${esc(birthDate)}</span></div>` : "",
-      city ? `<div class="infoRow"><span class="k">Ville</span><span class="v">${esc(city)}</span></div>` : "",
-      email ? `<div class="infoRow"><span class="k">Email</span><span class="v">${esc(email)}</span></div>` : "",
-      phone ? `<div class="infoRow"><span class="k">Téléphone</span><span class="v">${esc(phone)}</span></div>` : "",
+      birthDate
+        ? `<div class="infoRow"><span class="k">Date de naissance</span><span class="v">${esc(birthDate)}</span></div>`
+        : "",
+      city
+        ? `<div class="infoRow"><span class="k">Ville</span><span class="v">${esc(city)}</span></div>`
+        : "",
+      email
+        ? `<div class="infoRow"><span class="k">Email</span><span class="v">${esc(email)}</span></div>`
+        : "",
+      phone
+        ? `<div class="infoRow"><span class="k">Téléphone</span><span class="v">${esc(phone)}</span></div>`
+        : "",
     ].filter(Boolean);
+
+    // ✅ AJOUT : Photo optionnelle (base64 conseillé)
+    const photoSrc = String(gen.photoDataUrl ?? "").trim();
+    const photoOk =
+      Boolean(gen.includePhoto) &&
+      !!photoSrc &&
+      (photoSrc.startsWith("data:image/") || photoSrc.startsWith("http://") || photoSrc.startsWith("https://"));
+
+    const photoHtml = photoOk
+      ? `<div class="photoWrap"><img class="photo" src="${esc(photoSrc)}" alt="Photo" /></div>`
+      : "";
 
     const educationHtml =
       educationArr.length > 0
@@ -267,15 +286,43 @@ export async function GET(req) {
       margin-bottom: 14px;
       display: flex;
       justify-content: space-between;
-      align-items: flex-end;
+      align-items: center; /* ✅ mieux avec photo */
       gap: 12px;
     }
+
+    /* ✅ AJOUT : bloc identité + photo */
+    .identity{
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      min-width: 0;
+    }
+    .photoWrap{
+      width: 30mm;
+      height: 30mm;
+      border-radius: 10mm;
+      overflow: hidden;
+      border: 1px solid #e5e7eb;
+      background: #f8fafc;
+      flex: 0 0 auto;
+    }
+    .photo{
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: 50% 35%;
+      display: block;
+    }
+
     .name { font-size: 26px; font-weight: 800; letter-spacing: -0.3px; margin: 0; }
     .title { margin: 6px 0 0 0; font-size: 12.5px; color: #475569; }
     .meta { font-size: 10.5px; color: #64748b; text-align: right; }
     .grid {
       display: grid;
-      grid-template-columns: 1fr 260px;
+
+      /* ✅ MODIF : sidebar à gauche */
+      grid-template-columns: 260px 1fr;
+
       gap: 14px;
       align-items: start;
     }
@@ -360,11 +407,14 @@ export async function GET(req) {
   </style>
 </head>
 <body>
-  <!-- PAGE 1 : CV (uniquement infos perso + formation + expérience + compétences) -->
+  <!-- PAGE 1 : CV -->
   <div class="topbar">
-    <div>
-      <h1 class="name">${esc(fullName)}</h1>
-      <div class="title">${esc(title)}</div>
+    <div class="identity">
+      ${photoHtml}
+      <div>
+        <h1 class="name">${esc(fullName)}</h1>
+        <div class="title">${esc(title)}</div>
+      </div>
     </div>
     <div class="meta">
       Généré le ${esc(createdAt)}
@@ -373,13 +423,8 @@ export async function GET(req) {
   </div>
 
   <div class="grid">
-    <div>
-      <div class="section">
-        <div class="h">Expérience</div>
-        <div class="xpList">${experienceHtml}</div>
-      </div>
-    </div>
 
+    <!-- ✅ GAUCHE : Infos perso + Compétences -->
     <div>
       <div class="section">
         <div class="h">Infos personnelles</div>
@@ -393,11 +438,6 @@ export async function GET(req) {
       </div>
 
       <div class="section">
-        <div class="h">Formation</div>
-        <div class="eduList">${educationHtml}</div>
-      </div>
-
-      <div class="section">
         <div class="h">Compétences</div>
         <div class="badgewrap">
           ${
@@ -408,6 +448,20 @@ export async function GET(req) {
         </div>
       </div>
     </div>
+
+    <!-- ✅ DROITE : Expérience + Formation -->
+    <div>
+      <div class="section">
+        <div class="h">Expérience</div>
+        <div class="xpList">${experienceHtml}</div>
+      </div>
+
+      <div class="section">
+        <div class="h">Formation</div>
+        <div class="eduList">${educationHtml}</div>
+      </div>
+    </div>
+
   </div>
 
   <div class="footer">
