@@ -194,7 +194,9 @@ function fallbackLetter({ name, targetRole, experience, skillsArr }) {
 Bonjour,
 
 Je vous adresse ma candidature pour le poste de ${targetRole || "—"}.
-Mon expérience (${(experience || "").slice(0, 200)}${(experience || "").length > 200 ? "…" : ""}) et mes compétences (${skillsLine || "—"}) me permettront de contribuer rapidement à vos projets.
+Mon expérience (${(experience || "").slice(0, 200)}${
+    (experience || "").length > 200 ? "…" : ""
+  }) et mes compétences (${skillsLine || "—"}) me permettront de contribuer rapidement à vos projets.
 
 Je serais ravi d’échanger avec vous.
 
@@ -266,7 +268,6 @@ Réponds en JSON STRICT (sans markdown, sans backticks) avec exactement ces clé
 `.trim();
 
     // défaut: fallback (au cas où l'IA plante)
-    // ✅ on passe experienceText (string) aux fallbacks (on ne supprime rien)
     let cv = fallbackCv({ name, targetRole, experience: experienceText, skillsArr, educationArr });
     let coverLetter = fallbackLetter({
       name,
@@ -291,11 +292,9 @@ Réponds en JSON STRICT (sans markdown, sans backticks) avec exactement ces clé
         coverLetter = String(parsed?.coverLetter || coverLetter);
         suggestions = String(parsed?.suggestions || suggestions);
       } catch {
-        // si ce n'est pas du JSON, on garde le fallback mais on conserve le raw dans cv si vide
         if (!cv || cv.trim() === "") cv = String(raw || "");
       }
     } catch (e) {
-      // IA KO -> on garde fallback
       console.error("Groq error (fallback used):", e?.message || e);
     }
 
@@ -305,7 +304,6 @@ Réponds en JSON STRICT (sans markdown, sans backticks) avec exactement ces clé
         education: JSON.stringify(educationArr),
 
         // ✅ AJOUT : on stocke l’expérience en JSON (comme skills/education)
-        // compatible avec ton PDF (expérience en blocs)
         experience: JSON.stringify(experienceArr),
 
         skills: JSON.stringify(skillsArr),
@@ -325,4 +323,35 @@ Réponds en JSON STRICT (sans markdown, sans backticks) avec exactement ces clé
       { status: 500 }
     );
   }
+}
+
+/* ===========================
+   ✅ AJOUT MANQUANT : LOGOUT SERVEUR (vraie déconnexion)
+   -> supprime les cookies côté serveur (y compris HttpOnly)
+   -> ton bouton "Déconnexion" doit appeler: fetch("/api/career", { method: "DELETE" })
+=========================== */
+export async function DELETE() {
+  const res = NextResponse.json({ ok: true }, { status: 200 });
+
+  // ⚠️ Mets ici les noms EXACTS de tes cookies d'auth si différents
+  const cookieNames = [
+    "token",
+    "accessToken",
+    "auth",
+    "session",
+    "jwt",
+
+    // NextAuth (si jamais)
+    "next-auth.session-token",
+    "__Secure-next-auth.session-token",
+    "next-auth.csrf-token",
+    "__Host-next-auth.csrf-token",
+  ];
+
+  for (const name of cookieNames) {
+    // suppression cookie (important: path="/")
+    res.cookies.set(name, "", { maxAge: 0, path: "/" });
+  }
+
+  return res;
 }

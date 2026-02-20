@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
 
 function Field({ label, hint, children }) {
   return (
@@ -74,6 +75,9 @@ function Textarea(props) {
 }
 
 export default function CareerPage() {
+  const router = useRouter();
+  const [logoutLoading, setLogoutLoading] = useState(false);
+
   const [form, setForm] = useState({
     name: "salim tayeb",
     // ✅ Expérience en blocs
@@ -186,6 +190,77 @@ export default function CareerPage() {
     }));
   }
 
+  // ✅ Bouton Retour
+  function goBack() {
+    if (typeof window !== "undefined" && window.history.length > 1) {
+      router.back();
+    } else {
+      router.push("/hub");
+    }
+  }
+
+  // ✅ Bouton Déconnexion (sans nouveau fichier) : best-effort + redirection
+  function clearCookie(name) {
+    try {
+      document.cookie = `${name}=; Max-Age=0; path=/`;
+      document.cookie = `${name}=; Max-Age=0; path=/; domain=${window.location.hostname}`;
+    } catch {}
+  }
+
+  async function logout() {
+    if (logoutLoading) return;
+
+    try {
+      setLogoutLoading(true);
+
+      // ✅ Déconnexion côté serveur (si tu ajoutes le handler DELETE sur /api/career)
+      // (nécessaire pour supprimer un cookie HttpOnly)
+      try {
+        await fetch("/api/career", { method: "DELETE" });
+      } catch {}
+
+      // Si tu as déjà une route dédiée, on tente aussi (sinon on ignore)
+      try {
+        await fetch("/api/logout", { method: "POST" });
+      } catch {}
+
+      // Nettoyage local
+      try {
+        localStorage.removeItem("token");
+        localStorage.removeItem("accessToken");
+        localStorage.removeItem("auth");
+        localStorage.removeItem("jwt");
+        localStorage.removeItem("user");
+      } catch {}
+
+      try {
+        sessionStorage.clear();
+      } catch {}
+
+      [
+        "token",
+        "accessToken",
+        "auth",
+        "session",
+        "jwt",
+        "next-auth.session-token",
+        "__Secure-next-auth.session-token",
+        "next-auth.csrf-token",
+        "__Host-next-auth.csrf-token",
+      ].forEach(clearCookie);
+    } finally {
+      setLogoutLoading(false);
+
+      // Redirect "hard" pour éviter tout effet type 'retour' (middleware/session)
+      if (typeof window !== "undefined") {
+        window.location.replace("/login");
+      } else {
+        router.push("/login");
+        router.refresh();
+      }
+    }
+  }
+
   async function generate() {
     setError("");
     setLoading(true);
@@ -259,28 +334,68 @@ export default function CareerPage() {
               </p>
             </div>
 
-            <div
-              style={{
-                padding: "10px 12px",
-                borderRadius: 14,
-                border: "1px solid rgba(255,255,255,0.12)",
-                background: "rgba(0,0,0,0.18)",
-                minWidth: 220,
-              }}
-            >
-              <div style={{ fontSize: 12, opacity: 0.8, marginBottom: 8 }}>Statut</div>
-              <div style={{ display: "grid", gap: 6, fontSize: 13 }}>
-                <div>
-                  {missing.length ? (
-                    <span style={{ color: "#ffb4b4" }}>
-                      {missing.length} champ(s) manquant(s)
-                    </span>
-                  ) : (
-                    <span style={{ color: "#b9ffcf" }}>Prêt à générer ✅</span>
-                  )}
+            {/* ✅ Ajout : boutons Retour + Déconnexion (sans changer le bloc Statut) */}
+            <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
+              <button
+                type="button"
+                onClick={goBack}
+                style={{
+                  padding: "10px 12px",
+                  borderRadius: 14,
+                  border: "1px solid rgba(255,255,255,0.12)",
+                  background: "rgba(255,255,255,0.06)",
+                  color: "white",
+                  fontWeight: 800,
+                  cursor: "pointer",
+                  whiteSpace: "nowrap",
+                }}
+              >
+                ← Retour
+              </button>
+
+              <button
+                type="button"
+                onClick={logout}
+                disabled={logoutLoading}
+                style={{
+                  padding: "10px 12px",
+                  borderRadius: 14,
+                  border: "1px solid rgba(255,120,120,0.35)",
+                  background: "rgba(255, 80, 80, 0.08)",
+                  color: "#ffb4b4",
+                  fontWeight: 900,
+                  cursor: logoutLoading ? "not-allowed" : "pointer",
+                  opacity: logoutLoading ? 0.6 : 1,
+                  whiteSpace: "nowrap",
+                }}
+              >
+                {logoutLoading ? "Déconnexion..." : "Déconnexion"}
+              </button>
+
+              <div
+                style={{
+                  padding: "10px 12px",
+                  borderRadius: 14,
+                  border: "1px solid rgba(255,255,255,0.12)",
+                  background: "rgba(0,0,0,0.18)",
+                  minWidth: 220,
+                }}
+              >
+                <div style={{ fontSize: 12, opacity: 0.8, marginBottom: 8 }}>Statut</div>
+                <div style={{ display: "grid", gap: 6, fontSize: 13 }}>
+                  <div>
+                    {missing.length ? (
+                      <span style={{ color: "#ffb4b4" }}>
+                        {missing.length} champ(s) manquant(s)
+                      </span>
+                    ) : (
+                      <span style={{ color: "#b9ffcf" }}>Prêt à générer ✅</span>
+                    )}
+                  </div>
                 </div>
               </div>
             </div>
+            {/* ✅ Fin ajout */}
           </div>
         </div>
 

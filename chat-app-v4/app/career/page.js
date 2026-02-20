@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "../../frontend/hooks/useAuth.js";
 
@@ -78,15 +78,56 @@ function Textarea(props) {
   );
 }
 
+/* ✅ AJOUT : petit bouton stylé (sans casser le reste) */
+function MiniButton({ children, onClick, variant = "ghost", type = "button" }) {
+  const isDanger = variant === "danger";
+  return (
+    <button
+      type={type}
+      onClick={onClick}
+      style={{
+        padding: "10px 12px",
+        borderRadius: 12,
+        border: isDanger
+          ? "1px solid rgba(255,120,120,0.35)"
+          : "1px solid rgba(255,255,255,0.18)",
+        background: isDanger ? "rgba(255, 80, 80, 0.08)" : "rgba(255,255,255,0.10)",
+        color: isDanger ? "#ffb4b4" : "white",
+        fontWeight: 900,
+        cursor: "pointer",
+        whiteSpace: "nowrap",
+      }}
+    >
+      {children}
+    </button>
+  );
+}
+
 export default function CareerPage() {
   const router = useRouter();
-  const { signOut } = useAuth();
+
+  /* ✅ MODIF (sans rien enlever) : on récupère user/loadingAuth pour protéger la page */
+  const { user, loadingAuth, signOut } = useAuth();
+
+  /* ✅ AJOUT : protection route (si pas connecté => /login) */
+  useEffect(() => {
+    if (!loadingAuth && !user) {
+      router.replace("/login");
+    }
+  }, [loadingAuth, user, router]);
 
   const [form, setForm] = useState({
     name: "salim tayeb",
-    experience: "",
-    skills: "",
-    education: "",
+
+    /* ✅ AJOUT : infos personnelles */
+    birthDate: "",
+    city: "",
+    email: "",
+    phone: "",
+
+    experience: [{ title: "", company: "", year: "", details: "" }],
+    skills: [],
+    education: [{ degree: "", school: "", year: "" }],
     targetRole: "",
   });
 
@@ -97,34 +138,174 @@ export default function CareerPage() {
   const [result, setResult] = useState(null);
 
   const missing = useMemo(() => {
-    const req = [
-      ["experience", "Expérience"],
-      ["skills", "Compétences"],
-      ["education", "Formation"],
-      ["targetRole", "Poste visé"],
-    ];
-    return req
-      .filter(([k]) => !String(form[k] || "").trim())
-      .map(([, label]) => label);
+    const labels = [];
+
+    // Expérience
+    const xpOk =
+      Array.isArray(form.experience) &&
+      form.experience.length > 0 &&
+      form.experience.some(
+        (x) =>
+          String(x?.title || "").trim() ||
+          String(x?.company || "").trim() ||
+          String(x?.year || "").trim() ||
+          String(x?.details || "").trim()
+      );
+    if (!xpOk) labels.push("Expérience");
+
+    // Compétences
+    const skillsOk = Array.isArray(form.skills) && form.skills.length > 0;
+    if (!skillsOk) labels.push("Compétences");
+
+    // Formation
+    const eduOk =
+      Array.isArray(form.education) &&
+      form.education.length > 0 &&
+      form.education.some(
+        (e) =>
+          String(e?.degree || "").trim() ||
+          String(e?.school || "").trim() ||
+          String(e?.year || "").trim()
+      );
+    if (!eduOk) labels.push("Formation");
+
+    // Poste visé
+    if (!String(form.targetRole || "").trim()) labels.push("Poste visé");
+
+    return labels;
   }, [form]);
+
+  // ===== Skills (blocs / tags) =====
+  function addSkill() {
+    const v = String(skillDraft || "").trim();
+    if (!v) return;
+
+    setForm((p) => {
+      const list = Array.isArray(p.skills) ? p.skills : [];
+      if (list.some((x) => String(x).toLowerCase() === v.toLowerCase())) return p;
+      return { ...p, skills: [...list, v] };
+    });
+    setSkillDraft("");
+  }
+
+  function removeSkill(skill) {
+    const s = String(skill || "");
+    setForm((p) => ({
+      ...p,
+      skills: (p.skills || []).filter(
+        (x) => String(x).toLowerCase() !== s.toLowerCase()
+      ),
+    }));
+  }
+
+  // ===== Education blocs =====
+  function addEducation() {
+    setForm((p) => ({
+      ...p,
+      education: [...(p.education || []), { degree: "", school: "", year: "" }],
+    }));
+  }
+
+  function removeEducation(index) {
+    setForm((p) => ({
+      ...p,
+      education: (p.education || []).filter((_, i) => i !== index),
+    }));
+  }
+
+  function updateEducation(index, key, value) {
+    setForm((p) => ({
+      ...p,
+      education: (p.education || []).map((ed, i) =>
+        i === index ? { ...ed, [key]: value } : ed
+      ),
+    }));
+  }
+
+  // ===== Experience blocs =====
+  function addExperience() {
+    setForm((p) => ({
+      ...p,
+      experience: [
+        ...(p.experience || []),
+        { title: "", company: "", year: "", details: "" },
+      ],
+    }));
+  }
+
+  function removeExperience(index) {
+    setForm((p) => ({
+      ...p,
+      experience: (p.experience || []).filter((_, i) => i !== index),
+    }));
+  }
+
+  function updateExperience(index, key, value) {
+    setForm((p) => ({
+      ...p,
+      experience: (p.experience || []).map((ex, i) =>
+        i === index ? { ...ex, [key]: value } : ex
+      ),
+    }));
+  }
+
+  /* ✅ AJOUT : déconnexion "réelle" + redirection */
+  async function handleLogout() {
+    try {
+      // ✅ si ton hook supporte redirectTo => parfait
+      await Promise.resolve(signOut?.("/login"));
+    } catch {
+      // même si ça échoue, on tente la redirection
+    } finally {
+      router.replace("/login");
+    }
+  }
 
   async function generate() {
     setError("");
     setLoading(true);
     setResult(null);
 
-    // validation UI (en FR)
     if (missing.length) {
       setLoading(false);
       setError(`Champs obligatoires manquants : ${missing.join(", ")}`);
       return;
     }
 
+    // payload propre (trim + filtre)
+    const payload = {
+      name: String(form.name || "").trim(),
+      targetRole: String(form.targetRole || "").trim(),
+
+      /* ✅ AJOUT : infos personnelles envoyées au backend */
+      birthDate: String(form.birthDate || "").trim(),
+      city: String(form.city || "").trim(),
+      email: String(form.email || "").trim(),
+      phone: String(form.phone || "").trim(),
+
+      skills: (form.skills || []).map((s) => String(s).trim()).filter(Boolean),
+      education: (form.education || [])
+        .map((e) => ({
+          degree: String(e.degree || "").trim(),
+          school: String(e.school || "").trim(),
+          year: String(e.year || "").trim(),
+        }))
+        .filter((e) => e.degree || e.school || e.year),
+      experience: (form.experience || [])
+        .map((x) => ({
+          title: String(x.title || "").trim(),
+          company: String(x.company || "").trim(),
+          year: String(x.year || "").trim(),
+          details: String(x.details || "").trim(),
+        }))
+        .filter((x) => x.title || x.company || x.year || x.details),
+    };
+
     try {
       const res = await fetch("/api/career", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(form),
+        body: JSON.stringify(payload),
       });
 
       const data = await res.json();
@@ -183,8 +364,10 @@ export default function CareerPage() {
             {/* ✅ Boutons ajoutés + bloc Statut regroupé à droite */}
             <div style={{ display: "grid", gap: 10, justifyItems: "end" }}>
               <div style={{ display: "flex", gap: 10 }}>
-                <button onClick={() => router.back()}>Retour</button>
-                <button onClick={signOut}>Déconnexion</button>
+                <MiniButton onClick={() => router.back()}>Retour</MiniButton>
+                <MiniButton variant="danger" onClick={handleLogout}>
+                  Déconnexion
+                </MiniButton>
               </div>
 
               <div
@@ -242,125 +425,307 @@ export default function CareerPage() {
                 <Input
                   placeholder="Ex : Salim Tayeb"
                   value={form.name}
-                  onChange={(e) => setForm((p) => ({ ...p, name: e.target.value }))}
+                  onChange={(e) =>
+                    setForm((p) => ({ ...p, name: e.target.value }))
+                  }
                 />
               </Field>
 
+              {/* ✅ AJOUT : Infos personnelles */}
+              <Field label="Infos personnelles" hint="Optionnel">
+                <div style={{ display: "grid", gap: 10 }}>
+                  <div
+                    style={{
+                      display: "grid",
+                      gridTemplateColumns: "1fr 1fr",
+                      gap: 10,
+                    }}
+                  >
+                    <Input
+                      type="date"
+                      placeholder="Date de naissance"
+                      value={form.birthDate}
+                      onChange={(e) =>
+                        setForm((p) => ({ ...p, birthDate: e.target.value }))
+                      }
+                    />
+                    <Input
+                      placeholder="Ville"
+                      value={form.city}
+                      onChange={(e) =>
+                        setForm((p) => ({ ...p, city: e.target.value }))
+                      }
+                    />
+                  </div>
+
+                  <div
+                    style={{
+                      display: "grid",
+                      gridTemplateColumns: "1fr 1fr",
+                      gap: 10,
+                    }}
+                  >
+                    <Input
+                      placeholder="Email"
+                      value={form.email}
+                      onChange={(e) =>
+                        setForm((p) => ({ ...p, email: e.target.value }))
+                      }
+                    />
+                    <Input
+                      placeholder="Téléphone"
+                      value={form.phone}
+                      onChange={(e) =>
+                        setForm((p) => ({ ...p, phone: e.target.value }))
+                      }
+                    />
+                  </div>
+
+                  <div style={{ fontSize: 12, opacity: 0.75 }}>
+                    Ces infos seront utilisées pour le rendu du CV (si ton backend les gère).
+                  </div>
+                </div>
+              </Field>
+
+              {/* ✅ Expérience en blocs (comme v3) */}
               <Field label="Expérience" hint="Obligatoire">
-                <Textarea
-                  placeholder="Ex : Stage, projets, jobs… (missions + résultats)"
-                  value={form.experience}
-                  onChange={(e) =>
-                    setForm((p) => ({ ...p, experience: e.target.value }))
-                  }
-                />
+                <div style={{ display: "grid", gap: 10 }}>
+                  {(form.experience || []).map((ex, i) => (
+                    <div
+                      key={i}
+                      style={{
+                        padding: 12,
+                        borderRadius: 14,
+                        border: "1px solid rgba(255,255,255,0.12)",
+                        background: "rgba(0,0,0,0.18)",
+                        display: "grid",
+                        gap: 10,
+                      }}
+                    >
+                      <Input
+                        placeholder="Titre (ex : Stage / Développeur Front)"
+                        value={ex.title}
+                        onChange={(e) => updateExperience(i, "title", e.target.value)}
+                      />
+
+                      <div
+                        style={{
+                          display: "grid",
+                          gridTemplateColumns: "1fr 0.5fr",
+                          gap: 10,
+                        }}
+                      >
+                        <Input
+                          placeholder="Entreprise / Projet"
+                          value={ex.company}
+                          onChange={(e) =>
+                            updateExperience(i, "company", e.target.value)
+                          }
+                        />
+                        <Input
+                          placeholder="Année / Période"
+                          value={ex.year}
+                          onChange={(e) => updateExperience(i, "year", e.target.value)}
+                        />
+                      </div>
+
+                      <Textarea
+                        placeholder="- Missions\n- Réalisations\n- Résultats (chiffres si possible)"
+                        value={ex.details}
+                        onChange={(e) =>
+                          updateExperience(i, "details", e.target.value)
+                        }
+                      />
+
+                      <div style={{ display: "flex", justifyContent: "flex-end" }}>
+                        <button
+                          type="button"
+                          onClick={() => removeExperience(i)}
+                          disabled={(form.experience || []).length === 1}
+                          style={{
+                            padding: "10px 12px",
+                            borderRadius: 12,
+                            border: "1px solid rgba(255,120,120,0.35)",
+                            background: "rgba(255, 80, 80, 0.08)",
+                            color: "#ffb4b4",
+                            fontWeight: 800,
+                            cursor:
+                              (form.experience || []).length === 1
+                                ? "not-allowed"
+                                : "pointer",
+                            opacity: (form.experience || []).length === 1 ? 0.5 : 1,
+                          }}
+                        >
+                          Supprimer
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+
+                  <button
+                    type="button"
+                    onClick={addExperience}
+                    style={{
+                      padding: "12px 14px",
+                      borderRadius: 14,
+                      border: "1px solid rgba(255,255,255,0.12)",
+                      background: "rgba(255,255,255,0.10)",
+                      color: "white",
+                      fontWeight: 800,
+                      cursor: "pointer",
+                    }}
+                  >
+                    + Ajouter une expérience
+                  </button>
+                </div>
               </Field>
 
+              {/* ✅ Compétences en tags (comme v3: array + badges) */}
               <Field label="Compétences" hint="Obligatoire">
-  <div style={{ display: "grid", gap: 10 }}>
-    <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
-      {String(form.skills || "")
-        .split(",")
-        .map((s) => s.trim())
-        .filter(Boolean)
-        .map((s) => (
-          <button
-            key={s}
-            type="button"
-            onClick={() => {
-              const next = String(form.skills || "")
-                .split(",")
-                .map((x) => x.trim())
-                .filter((x) => x && x.toLowerCase() !== s.toLowerCase())
-                .join(", ");
-              setForm((p) => ({ ...p, skills: next }));
-            }}
-            style={{
-              padding: "6px 10px",
-              borderRadius: 999,
-              border: "1px solid rgba(255,255,255,0.18)",
-              background: "rgba(0,0,0,0.22)",
-              color: "white",
-              cursor: "pointer",
-              fontSize: 13,
-            }}
-            title="Cliquer pour retirer"
-          >
-            {s} ✕
-          </button>
-        ))}
-    </div>
+                <div style={{ display: "grid", gap: 10 }}>
+                  <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
+                    {(form.skills || []).map((s) => (
+                      <button
+                        key={s}
+                        type="button"
+                        onClick={() => removeSkill(s)}
+                        style={{
+                          padding: "6px 10px",
+                          borderRadius: 999,
+                          border: "1px solid rgba(255,255,255,0.18)",
+                          background: "rgba(0,0,0,0.22)",
+                          color: "white",
+                          cursor: "pointer",
+                          fontSize: 13,
+                        }}
+                        title="Cliquer pour retirer"
+                      >
+                        {s} ✕
+                      </button>
+                    ))}
+                  </div>
 
-    <div style={{ display: "flex", gap: 10 }}>
-      <Input
-        placeholder="Ex : HTML, CSS, JS, React… (Entrée pour ajouter)"
-        value={skillDraft}
-        onChange={(e) => setSkillDraft(e.target.value)}
-        onKeyDown={(e) => {
-          if (e.key !== "Enter") return;
-          e.preventDefault();
-          const v = String(skillDraft || "").trim();
-          if (!v) return;
-          const list = String(form.skills || "")
-            .split(",")
-            .map((x) => x.trim())
-            .filter(Boolean);
-          if (list.some((x) => x.toLowerCase() === v.toLowerCase())) {
-            setSkillDraft("");
-            return;
-          }
-          const next = [...list, v].join(", ");
-          setForm((p) => ({ ...p, skills: next }));
-          setSkillDraft("");
-        }}
-      />
+                  <div style={{ display: "flex", gap: 10 }}>
+                    <Input
+                      placeholder="Ex : HTML, CSS, JS, React… (Entrée pour ajouter)"
+                      value={skillDraft}
+                      onChange={(e) => setSkillDraft(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key !== "Enter") return;
+                        e.preventDefault();
+                        addSkill();
+                      }}
+                    />
 
-      <button
-        type="button"
-        onClick={() => {
-          const v = String(skillDraft || "").trim();
-          if (!v) return;
-          const list = String(form.skills || "")
-            .split(",")
-            .map((x) => x.trim())
-            .filter(Boolean);
-          if (list.some((x) => x.toLowerCase() === v.toLowerCase())) {
-            setSkillDraft("");
-            return;
-          }
-          const next = [...list, v].join(", ");
-          setForm((p) => ({ ...p, skills: next }));
-          setSkillDraft("");
-        }}
-        style={{
-          padding: "12px 14px",
-          borderRadius: 12,
-          border: "1px solid rgba(255,255,255,0.18)",
-          background: "rgba(255,255,255,0.10)",
-          color: "white",
-          fontWeight: 800,
-          cursor: "pointer",
-          whiteSpace: "nowrap",
-        }}
-      >
-        Ajouter
-      </button>
-    </div>
+                    <button
+                      type="button"
+                      onClick={addSkill}
+                      style={{
+                        padding: "12px 14px",
+                        borderRadius: 12,
+                        border: "1px solid rgba(255,255,255,0.18)",
+                        background: "rgba(255,255,255,0.10)",
+                        color: "white",
+                        fontWeight: 800,
+                        cursor: "pointer",
+                        whiteSpace: "nowrap",
+                      }}
+                    >
+                      Ajouter
+                    </button>
+                  </div>
 
-    <div style={{ fontSize: 12, opacity: 0.75 }}>
-      Astuce : clique sur un tag pour le retirer.
-    </div>
-  </div>
-</Field>
+                  <div style={{ fontSize: 12, opacity: 0.75 }}>
+                    Astuce : clique sur un tag pour le retirer.
+                  </div>
+                </div>
+              </Field>
 
+              {/* ✅ Formation en blocs (comme v3) */}
               <Field label="Formation" hint="Obligatoire">
-                <Input
-                  placeholder="Ex : Bac+3 Informatique…"
-                  value={form.education}
-                  onChange={(e) =>
-                    setForm((p) => ({ ...p, education: e.target.value }))
-                  }
-                />
+                <div style={{ display: "grid", gap: 10 }}>
+                  {(form.education || []).map((ed, i) => (
+                    <div
+                      key={i}
+                      style={{
+                        padding: 12,
+                        borderRadius: 14,
+                        border: "1px solid rgba(255,255,255,0.12)",
+                        background: "rgba(0,0,0,0.18)",
+                        display: "grid",
+                        gap: 10,
+                      }}
+                    >
+                      <Input
+                        placeholder="Diplôme (ex : Bac+3 Informatique)"
+                        value={ed.degree}
+                        onChange={(e) =>
+                          updateEducation(i, "degree", e.target.value)
+                        }
+                      />
+
+                      <div
+                        style={{
+                          display: "grid",
+                          gridTemplateColumns: "1fr 0.5fr",
+                          gap: 10,
+                        }}
+                      >
+                        <Input
+                          placeholder="École / Organisme"
+                          value={ed.school}
+                          onChange={(e) =>
+                            updateEducation(i, "school", e.target.value)
+                          }
+                        />
+                        <Input
+                          placeholder="Année"
+                          value={ed.year}
+                          onChange={(e) => updateEducation(i, "year", e.target.value)}
+                        />
+                      </div>
+
+                      <div style={{ display: "flex", justifyContent: "flex-end" }}>
+                        <button
+                          type="button"
+                          onClick={() => removeEducation(i)}
+                          disabled={(form.education || []).length === 1}
+                          style={{
+                            padding: "10px 12px",
+                            borderRadius: 12,
+                            border: "1px solid rgba(255,120,120,0.35)",
+                            background: "rgba(255, 80, 80, 0.08)",
+                            color: "#ffb4b4",
+                            fontWeight: 800,
+                            cursor:
+                              (form.education || []).length === 1
+                                ? "not-allowed"
+                                : "pointer",
+                            opacity: (form.education || []).length === 1 ? 0.5 : 1,
+                          }}
+                        >
+                          Supprimer
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+
+                  <button
+                    type="button"
+                    onClick={addEducation}
+                    style={{
+                      padding: "12px 14px",
+                      borderRadius: 14,
+                      border: "1px solid rgba(255,255,255,0.12)",
+                      background: "rgba(255,255,255,0.10)",
+                      color: "white",
+                      fontWeight: 800,
+                      cursor: "pointer",
+                    }}
+                  >
+                    + Ajouter un diplôme
+                  </button>
+                </div>
               </Field>
 
               <Field label="Poste visé" hint="Obligatoire">
@@ -373,7 +738,14 @@ export default function CareerPage() {
                 />
               </Field>
 
-              <div style={{ display: "flex", gap: 10, alignItems: "center", marginTop: 6 }}>
+              <div
+                style={{
+                  display: "flex",
+                  gap: 10,
+                  alignItems: "center",
+                  marginTop: 6,
+                }}
+              >
                 <button
                   onClick={generate}
                   disabled={loading}
@@ -430,7 +802,14 @@ export default function CareerPage() {
             <div style={{ fontWeight: 900, fontSize: 14, letterSpacing: 0.3 }}>
               Résultat
             </div>
-            <div style={{ opacity: 0.75, marginTop: 6, fontSize: 13, lineHeight: 1.5 }}>
+            <div
+              style={{
+                opacity: 0.75,
+                marginTop: 6,
+                fontSize: 13,
+                lineHeight: 1.5,
+              }}
+            >
               Après génération, tu pourras télécharger ton PDF et consulter les textes.
             </div>
 

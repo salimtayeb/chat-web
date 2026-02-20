@@ -2,11 +2,16 @@
 
 import { useEffect, useState } from "react";
 import { supabase } from "../lib/supabaseClient.js";
+/* ✅ AJOUT */
+import { useRouter } from "next/navigation";
 
 export function useAuth() {
   const [user, setUser] = useState(null);
   const [loadingAuth, setLoadingAuth] = useState(true);
   const [authError, setAuthError] = useState("");
+
+  /* ✅ AJOUT */
+  const router = useRouter();
 
   useEffect(() => {
     // 1) Récupérer la session au chargement
@@ -43,16 +48,35 @@ export function useAuth() {
       setAuthError(error.message);
       return false;
     }
+    /* ✅ AJOUT : met à jour l’UI immédiatement */
+    router.refresh();
     return true;
   }
 
-  async function signOut() {
+  /* ✅ MODIF MINIMALE (sans enlever) :
+     - ajoute un param optionnel redirectTo
+     - setUser(null) immédiat
+     - refresh + redirection */
+  async function signOut(redirectTo = "/login") {
     setAuthError("");
+
+    // ✅ UI instantanée
+    setUser(null);
+
     const { error } = await supabase.auth.signOut();
     if (error) {
       setAuthError(error.message);
       return false;
     }
+
+    // ✅ force la mise à jour des composants/route
+    router.refresh();
+
+    // ✅ redirection (désactive si tu passes null/false)
+    if (redirectTo) {
+      router.replace(redirectTo);
+    }
+
     return true;
   }
 

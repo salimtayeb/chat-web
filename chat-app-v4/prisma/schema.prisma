@@ -10,6 +10,13 @@ datasource db {
 model CareerGeneration {
   id           Int      @id @default(autoincrement())
   name         String?
+
+  
+  birthDate    String?
+  city         String?
+  email        String?
+  phone        String?
+
   education    String
   experience   String
   skills       String
@@ -41,15 +48,12 @@ model Message {
   @@index([conversationId])
 }
 
-
-
-
 model Quiz {
   id        String   @id @default(cuid())
   title     String
   domain    String
   jobText   String   // l'offre d'emploi brute utilisée
-  payload   String     // le quiz complet (questions, answers, etc.)
+  payload   String   // le quiz complet (questions, answers, etc.)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
